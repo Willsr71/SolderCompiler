@@ -1,0 +1,7 @@
+{
+  "api_url": "http://solder.preludecraft.com/api/",
+  "matching": {
+    "case_sensitive": false,
+    "percentage_required": 80
+  }
+}
