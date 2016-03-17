@@ -13,10 +13,27 @@ def get_config():
         print("File not found")
         return
 
+def makedirs():
+  if not os.path.exists("additions"):
+    os.mkdir("additions")
+  if not os.path.exists("additions/mods"):
+    os.mkdir("additions/mods")
+  if not os.path.exists("solder"):
+    os.mkdir("solder")
+  if not os.path.exists("solder/mods"):
+    os.mkdir("solder/mods")
+
+def package(file):
+  print(file)
+
 def main():
   global api_url
-  get_config();
+  get_config()
   
   api_url = config["api_url"]
+  makedirs()
   
-  main()
+  for file in os.listdir("additions/mods"):
+    package(file)
+  
+main()
