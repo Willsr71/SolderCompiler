@@ -29,22 +29,31 @@ def makedirs():
   if not os.path.exists("solder/mods"):
     os.mkdir("solder/mods")
 
-def getmatchratio(string1, string2):
-  return difflib.SequenceMatcher(None, string1, string2).ratio()
+def getmatchpercentage(string1, string2):
+  return int(round(difflib.SequenceMatcher(None, string1, string2).ratio() * 100))
     
 def getmatch(file):
   matches = []
-  for mod in mods:
-    ratio = getmatchratio(mod, file)
-    if ratio < 0.5: continue
-    
-    print(mod + " = " + str(ratio))
-    matches.append({ratio, mod})
+  top_percentage = 0
   
+  for mod in mods:
+    percentage = getmatchpercentage(mod, file)
+    if percentage < 50: continue
+    
+    matches.append({"percentage": str(percentage), "mod": str(mod)})
+    
+    if (percentage > top_percentage):
+      top_percentage = percentage
+  
+  print(matches)
+  for match in matches:
+    if match["percentage"] == str(top_percentage):
+      return match["mod"]
     
 def package(file):
   print(file)
-  getmatch(file.lower().split(".jar")[0])
+  match = getmatch(file.lower().split(".jar")[0])
+  print("Match: " + match)
 
 def main():
   get_config()
