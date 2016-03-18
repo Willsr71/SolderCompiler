@@ -3,7 +3,7 @@ import os
 import requests
 
 config = {}
-api_url = ""
+mods = []
 
 def get_config():
     global config
@@ -12,6 +12,14 @@ def get_config():
     except OSError:
         print("File not found")
         return
+
+def getmods():
+  global mods
+  request = requests.get(config["api_url"] + "/mod")
+  mods = json.loads(request.text)["mods"]
+  print("Found mods:")
+  for mod in mods:
+    print(mod)
 
 def makedirs():
   if not os.path.exists("additions"):
@@ -27,12 +35,12 @@ def package(file):
   print(file)
 
 def main():
-  global api_url
   get_config()
   
-  api_url = config["api_url"]
+  getmods()
   makedirs()
   
+  print("Found files:")
   for file in os.listdir("additions/mods"):
     package(file)
   
