@@ -1,3 +1,3 @@
 @echo off
-python compile.python
+python compile.py
 pause

@@ -1,5 +1,5 @@
 {
-  "api_url": "http://solder.noxal.net/api",
+  "api_url": "https://solder.noxal.net/api",
   "matching": {
     "case_sensitive": false,
     "percentage_required": 50
