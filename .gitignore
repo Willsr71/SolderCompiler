@@ -154,6 +154,7 @@ crashlytics-build.properties
 fabric.properties
 
 ### Project specific
-additions/*
-added/*
-solder/*
+additions/
+added/
+solder/
+.idea/

@@ -5,7 +5,6 @@ import shutil
 
 import requests
 import util
-
 from util import print_line
 
 config = util.get_json_file("config.json")
@@ -74,8 +73,6 @@ def package_file(mod):
 
 
 def prepare_packages(file):
-    global packaged_files
-
     print("\n", file, "\n")
     matches = get_matches(file)
 
