@@ -18,14 +18,14 @@ def get_config():
         return
 
 
-def getmods():
+def get_mods():
     global mods
     request = requests.get(config["api_url"] + "/mod")
     mods = json.loads(request.text)["mods"]
-    print("Got", len(mods), "mods from", config["api_url"])
+    print("Got", len(mods), "mods from", config["api_url"], "\n")
 
 
-def makedirs():
+def make_dirs():
     if not os.path.exists("additions"):
         os.mkdir("additions")
     if not os.path.exists("additions/mods"):
@@ -36,59 +36,54 @@ def makedirs():
         os.mkdir("solder/mods")
 
 
-def getmatchpercentage(string1, string2):
+def get_match_percentage(string1, string2):
     return int(round(difflib.SequenceMatcher(None, string1, string2).ratio() * 100))
 
 
-def gettopmatches(file):
+def insert_match(matches, mod, percentage):
+    for x in range(0, len(matches)):
+        if matches[x]["percentage"] <= percentage:
+            matches.insert(x, {"percentage": percentage, "mod": mod})
+            return matches
+
+    matches.append({"percentage": percentage, "mod": mod})
+    return matches
+
+
+def get_matches(file):
     matches = []
-    top_percentages = [0]
 
     file = file.split(".jar")[0]
     if not config["matching"]["case_sensitive"]:
         file = file.lower()
 
     for mod in mods:
-        percentage = getmatchpercentage(mod, file)
-        if percentage < config["matching"]["percentage_required"]:
-            continue
+        percentage = get_match_percentage(mod, file)
+        # if percentage > config["matching"]["percentage_required"]:
+        matches = insert_match(matches, mod, percentage)
 
-        matches.append({"percentage": str(percentage), "mod": str(mod)})
-
-        for x in range(0, len(top_percentages)):
-            if percentage > top_percentages[x]:
-                top_percentages.append(percentage)
-
-    print("Top percentages", top_percentages)
-    print("Matches", matches)
-    top_matches = []
-
-    for match in matches:
-        if match["percentage"] in top_percentages:
-            top_matches.append(match["mod"])
-
-    print("Top matches", top_matches)
-    return top_matches
+    return matches
 
 
 def prepare_packages(file):
     global packaged_files
 
-    print(file)
-    top_matches = gettopmatches(file)
-    print(top_matches)
+    print("\n", file, "\n")
+    matches = get_matches(file)
 
-    for x in range(0, 4):
-        print("Mod file:   " + file)
-        print("Best match: " + top_matches[x])
-        use = input("Use this match?").lower()
-        if use.startswith("y"):
-            version = input("Version?")
-            packaged_files.append({"mod_file": file, "slug": top_matches[x], "version": version})
-            return
+    max = min(5, len(matches))
+    for x in range(0, max):
+        print(str(x) + ". " + matches[x]["mod"] + " (" + str(matches[x]["percentage"]) + "%)")
+    print(str(max) + ". Other (input)")
 
-    slug = input("No matches found. Please enter mod slug.")
-    version = input("Version?")
+    use = int(input("Choose best match (0, " + str(max) + "): "))
+
+    if use == max:
+        slug = input("Enter mod slug: ")
+    else:
+        slug = matches[use]["mod"]
+
+    version = input("Version: ")
     packaged_files.append({"mod_file": file, "slug": slug, "version": version})
 
 
@@ -103,8 +98,8 @@ def package_file(mod):
 def main():
     get_config()
 
-    getmods()
-    makedirs()
+    get_mods()
+    make_dirs()
 
     for file in os.listdir("additions/mods"):
         prepare_packages(file)
