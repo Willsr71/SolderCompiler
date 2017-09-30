@@ -1,6 +1,7 @@
 import difflib
 import json
 import os
+import shutil
 
 import requests
 
@@ -30,10 +31,14 @@ def make_dirs():
         os.mkdir("additions")
     if not os.path.exists("additions/mods"):
         os.mkdir("additions/mods")
+
     if not os.path.exists("solder"):
         os.mkdir("solder")
     if not os.path.exists("solder/mods"):
         os.mkdir("solder/mods")
+
+    if not os.path.exists("temp"):
+        os.mkdir("temp")
 
 
 def get_match_percentage(string1, string2):
@@ -90,9 +95,18 @@ def prepare_packages(file):
 def package_file(mod):
     if not os.path.exists("solder/mods/" + mod["slug"]):
         os.mkdir("solder/mods/" + mod["slug"])
+    if not os.path.exists("temp/mods"):
+        os.mkdir("temp/mods")
 
     mod_file = mod["mod_file"]
-    packaged_file = mod["slug"] + "-" + mod["version"]
+    packaged_file = mod["slug"] + "/" + mod["slug"] + "-" + mod["version"]
+
+    print(mod_file)
+    print(packaged_file)
+
+    shutil.copyfile("additions/mods/" + mod_file, "temp/mods/" + mod_file)
+    shutil.make_archive("solder/mods/" + packaged_file, 'zip', "temp")
+    shutil.rmtree("temp/mods")
 
 
 def main():
