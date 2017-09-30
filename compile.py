@@ -4,19 +4,12 @@ import os
 import shutil
 
 import requests
+import util
 
-config = {}
+from util import print_line
+
+config = util.get_json_file("config.json")
 mods = []
-packaged_files = []
-
-
-def get_config():
-    global config
-    try:
-        config = json.loads(open("config.json").read())
-    except OSError:
-        print("File not found")
-        return
 
 
 def get_mods():
@@ -26,19 +19,15 @@ def get_mods():
     print("Got", len(mods), "mods from", config["api_url"], "\n")
 
 
+def make_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
 def make_dirs():
-    if not os.path.exists("additions"):
-        os.mkdir("additions")
-    if not os.path.exists("additions/mods"):
-        os.mkdir("additions/mods")
-
-    if not os.path.exists("solder"):
-        os.mkdir("solder")
-    if not os.path.exists("solder/mods"):
-        os.mkdir("solder/mods")
-
-    if not os.path.exists("temp"):
-        os.mkdir("temp")
+    make_dir("additions/mods")
+    make_dir("added/mods")
+    make_dir("solder/mods")
 
 
 def get_match_percentage(string1, string2):
@@ -64,10 +53,24 @@ def get_matches(file):
 
     for mod in mods:
         percentage = get_match_percentage(mod, file)
-        # if percentage > config["matching"]["percentage_required"]:
         matches = insert_match(matches, mod, percentage)
 
     return matches
+
+
+def package_file(mod):
+    make_dir("solder/mods/" + mod["slug"])
+    make_dir("temp/mods")
+
+    mod_file = mod["mod_file"]
+    packaged_file = mod["slug"] + "/" + mod["slug"] + "-" + mod["version"]
+
+    print_line("Archiving... ")
+    shutil.copyfile("additions/mods/" + mod_file, "temp/mods/" + mod_file)
+    shutil.make_archive("solder/mods/" + packaged_file, 'zip', "temp")
+    shutil.move("additions/mods/" + mod_file, "added/mods/" + mod_file)
+    shutil.rmtree("temp")
+    print_line("Done.\n")
 
 
 def prepare_packages(file):
@@ -81,7 +84,12 @@ def prepare_packages(file):
         print(str(x) + ". " + matches[x]["mod"] + " (" + str(matches[x]["percentage"]) + "%)")
     print(str(max) + ". Other (input)")
 
-    use = int(input("Choose best match (0, " + str(max) + "): "))
+    use = input("Choose best match (0, " + str(max) + "): ")
+
+    if use == "":
+        use = 0
+    else:
+        use = int(use)
 
     if use == max:
         slug = input("Enter mod slug: ")
@@ -89,36 +97,15 @@ def prepare_packages(file):
         slug = matches[use]["mod"]
 
     version = input("Version: ")
-    packaged_files.append({"mod_file": file, "slug": slug, "version": version})
-
-
-def package_file(mod):
-    if not os.path.exists("solder/mods/" + mod["slug"]):
-        os.mkdir("solder/mods/" + mod["slug"])
-    if not os.path.exists("temp/mods"):
-        os.mkdir("temp/mods")
-
-    mod_file = mod["mod_file"]
-    packaged_file = mod["slug"] + "/" + mod["slug"] + "-" + mod["version"]
-
-    print(mod_file)
-    print(packaged_file)
-
-    shutil.copyfile("additions/mods/" + mod_file, "temp/mods/" + mod_file)
-    shutil.make_archive("solder/mods/" + packaged_file, 'zip', "temp")
-    shutil.rmtree("temp/mods")
+    package_file({"mod_file": file, "slug": slug, "version": version})
 
 
 def main():
-    get_config()
-
     get_mods()
     make_dirs()
 
-    for file in os.listdir("additions/mods"):
-        prepare_packages(file)
-    for mod in packaged_files:
-        package_file(mod)
+    while len(os.listdir("additions/mods")) != 0:
+        prepare_packages(os.listdir("additions/mods")[0])
 
 
 main()

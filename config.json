@@ -1,8 +1,6 @@
 {
   "api_url": "https://solder.noxal.net/api",
   "matching": {
-    "case_sensitive": false,
-    "percentage_required": 50
-  },
-  "zip_executable": "zip {file} {directory}"
+    "case_sensitive": false
+  }
 }
